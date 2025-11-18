@@ -24,6 +24,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: terraform -chdir=terraform plan
+      - name: Terraform Destroy
+        run: terraform -chdir=terraform destroy -auto-approve
       - name: Terraform apply
         run: terraform -chdir=terraform apply -auto-approve
         env:
