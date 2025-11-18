@@ -1,0 +1,48 @@
+name: CI/CD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform -chdir=terraform init
+
+      - name: Terraform Validate
+        run: terraform -chdir=terraform validate
+
+      - name: Terraform Plan
+        run: terraform -chdir=terraform plan
+
+  ansible:
+    needs: terraform
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible python3-boto3 python3-botocore python3-pip
+          pip3 install --user --upgrade boto3 botocore
+
+      - name: Run Ansible Syntax Check
+        run: ansible-playbook -i ansible/aws_ec2.yml ansible/site.yml --syntax-check
+
+      - name: Run Ansible Playbook (Check Only)
+        run: ansible-playbook -i ansible/aws_ec2.yml ansible/site.yml --check
