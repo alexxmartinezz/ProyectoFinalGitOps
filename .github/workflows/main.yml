@@ -54,6 +54,6 @@ jobs:
       - name: Run Ansible Syntax Check
         working-directory: ansible
         run: ansible-playbook site.yml --syntax-check
-      - name: Run Ansible Playbook (Check Only)
+      - name: Run Ansible Playbook
         working-directory: ansible
-        run: ansible-playbook site.yml --check
+        run: ansible-playbook site.yml
