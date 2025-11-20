@@ -32,12 +32,6 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: terraform -chdir=terraform apply -auto-approve
 
-      - name: Save Terraform output
-        id: outputter
-        run: |
-          data=$(terraform -chdir=terraform output -json)
-          echo "data=$data" >> $GITHUB_OUTPUT
-
   ansible:
     needs: terraform
     runs-on: ubuntu-latest
