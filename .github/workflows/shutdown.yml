@@ -1,12 +1,12 @@
 name: Terraform Destroy Only
 
-# on:
-#  workflow_dispatch:
 on:
-  workflow_run:
-    workflows: ["CI/CD"]
-    types:
-      - completed
+  workflow_dispatch:
+#on:
+ # workflow_run:
+  #  workflows: ["CI/CD"]
+   # types:
+    #  - completed
 jobs:
   destroy:
     runs-on: ubuntu-latest
