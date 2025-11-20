@@ -1,8 +1,8 @@
 resource "aws_launch_template" "asg_lt" {
-  name_prefix   = "web-asg-"
-  image_id      = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
-  key_name      = var.key_name
+  name_prefix            = "web-asg-"
+  image_id               = data.aws_ami.ubuntu.id
+  instance_type          = var.instance_type
+  key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.asg_sg.id]
 
   tag_specifications {
@@ -16,11 +16,11 @@ resource "aws_launch_template" "asg_lt" {
 }
 
 resource "aws_autoscaling_group" "web_asg" {
-  name                      = "web-asg"
-  max_size                  = var.asg_max_size
-  min_size                  = var.asg_min_size
-  desired_capacity           = var.asg_min_size
-  vpc_zone_identifier       = aws_subnet.public[*].id
+  name                = "web-asg"
+  max_size            = var.asg_max_size
+  min_size            = var.asg_min_size
+  desired_capacity    = var.asg_min_size
+  vpc_zone_identifier = aws_subnet.public[*].id
   launch_template {
     id      = aws_launch_template.asg_lt.id
     version = "$Latest"

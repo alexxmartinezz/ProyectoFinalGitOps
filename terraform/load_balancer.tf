@@ -1,9 +1,9 @@
 resource "aws_lb" "alb" {
-  name               = "alejandro-web-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = aws_subnet.public[*].id
+  name                       = "alejandro-web-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  security_groups            = [aws_security_group.alb_sg.id]
+  subnets                    = aws_subnet.public[*].id
   enable_deletion_protection = false
 }
 
@@ -34,5 +34,5 @@ resource "aws_lb_listener" "http" {
 
 resource "aws_autoscaling_attachment" "asg_alb" {
   autoscaling_group_name = aws_autoscaling_group.web_asg.name
-  lb_target_group_arn   = aws_lb_target_group.web_tg.arn
+  lb_target_group_arn    = aws_lb_target_group.web_tg.arn
 }
