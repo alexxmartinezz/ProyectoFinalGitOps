@@ -1,4 +1,4 @@
-name: CI/CD - Deploy
+name: CI/CD
 
 on:
   workflow_dispatch:
@@ -6,67 +6,54 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    outputs:
-      tf-output: ${{ steps.outputter.outputs.data }}
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v3
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.0
-
       - name: Terraform Init
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: terraform -chdir=terraform init
-
-      - name: Terraform Apply
+      - name: Terraform Plan
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: terraform -chdir=terraform plan
+      - name: Terraform apply
         run: terraform -chdir=terraform apply -auto-approve
-
-      - name: Save Terraform output
-        id: outputter
-        run: |
-          data=$(terraform -chdir=terraform output -json)
-          echo "data=$data" >> $GITHUB_OUTPUT
-
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
   ansible:
     needs: terraform
     runs-on: ubuntu-latest
-
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install Ansible & AWS deps
+        uses: actions/checkout@v3
+      - name: Install Ansible & AWS libs
         run: |
           sudo apt update
           sudo apt install -y python3-pip
-          pip3 install ansible==9.3.0 boto3 botocore
-
-      - name: Restore private key
+          pip3 install --upgrade ansible boto3 botocore
+      - name: Save private key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/alejandro.pem
+          echo "$PRIVATE_KEY" > ~/.ssh/alejandro.pem
           chmod 600 ~/.ssh/alejandro.pem
-
-      - name: Create inventory from Terraform output
-        run: |
-          echo '${{ needs.terraform.outputs.tf-output }}' > tf.json
-
+      - name: Run Ansible Syntax Check
+        working-directory: ansible
+        run: ansible-playbook site.yml --syntax-check
       - name: Run Ansible Playbook
-        run: ansible-playbook ansible/site.yml -e "@tf.json"
-
-      - name: Deployment Summary
-        run: |
-          echo "## 🚀 Deployment Completed" >> $GITHUB_STEP_SUMMARY
-          echo "### Instances:" >> $GITHUB_STEP_SUMMARY
-          cat tf.json >> $GITHUB_STEP_SUMMARY
+        working-directory: ansible
+        run: ansible-playbook site.yml
