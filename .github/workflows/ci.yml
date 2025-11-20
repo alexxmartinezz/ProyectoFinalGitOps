@@ -25,6 +25,9 @@ jobs:
       - name: Terraform FMT Check
         run: terraform -chdir=terraform fmt -recursive -check
 
+      - name: Terraform Init
+        run: terraform -chdir=terraform init -backend=false
+
       - name: Terraform Validate
         run: terraform -chdir=terraform validate
 
