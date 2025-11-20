@@ -5,6 +5,7 @@ on:
     workflows: ["CI - Validation"]
     types:
       - completed
+  workflow_dispatch:
 
 jobs:
   terraform:
