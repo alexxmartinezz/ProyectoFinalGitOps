@@ -2,12 +2,12 @@
   ansible.builtin.apt:
     name: apache2
     state: present
-    update_cache: yes
+    update_cache: true
   become: true
 
 - name: Ensure Apache is running
   ansible.builtin.service:
     name: apache2
     state: started
-    enabled: yes
+    enabled: true
   become: true
